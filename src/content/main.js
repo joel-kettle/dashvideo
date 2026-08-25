@@ -66,12 +66,56 @@
     }
   }
 
+  /* ---- the player's own fullscreen button ------------------------------ */
+
+  function toPage(message) {
+    try {
+      window.postMessage(message, '*');
+    } catch (e) { /* ignore */ }
+  }
+
+  /* The page-world hook parked the element behind an attribute for us. */
+  function fullscreenRequest(id) {
+    if (!/^\d+$/.test(String(id))) return null;
+    var found = util.deepQueryAll('[data-dashvideo-fullscreen-request="' + id + '"]');
+    return found[0] || null;
+  }
+
+  function onFullscreenRequest(id) {
+    var element = fullscreenRequest(id);
+    if (element) element.removeAttribute('data-dashvideo-fullscreen-request');
+
+    if (!element || !ready || !active || !state.settings.replaceFullscreen) {
+      toPage({ __dashvideo: 'fs-native', id: id });
+      return;
+    }
+
+    /* The player hands us exactly the box it wanted blown up - use that
+       instead of guessing a container from the video. */
+    var video = element.tagName === 'VIDEO'
+      ? element
+      : util.deepQueryAll('video', element)[0] || DV.videos.active();
+
+    if (!DV.maximize.enterElement(element, video, id)) {
+      toPage({ __dashvideo: 'fs-native', id: id });
+    }
+  }
+
   /* ---- cross-frame messages ------------------------------------------- */
 
   function onWindowMessage(e) {
     var data = e.data;
     if (!data || typeof data !== 'object' || !data.__dashvideo) return;
 
+    if (data.__dashvideo === 'fs-request') {
+      onFullscreenRequest(data.id);
+      return;
+    }
+    if (data.__dashvideo === 'fs-exit') {
+      if (state.maximized) DV.maximize.exit();
+      else toPage({ __dashvideo: 'fs-state', on: false, id: 0 });
+      return;
+    }
     if (data.__dashvideo === 'frame-maximize') {
       DV.maximize.fromChildFrame(e.source, data.on);
       return;
@@ -135,6 +179,9 @@
   function applySettings(settings) {
     state.settings = settings;
     active = settings.enabled && !util.hostBlocked(settings.blocklist);
+    /* The hook has to answer a fullscreen click synchronously, so it keeps its
+       own copy of this flag. */
+    toPage({ __dashvideo: 'fs-enabled', on: active && !!settings.replaceFullscreen });
     if (active && DV.ui.els.anchor) DV.ui.refresh();
   }
 

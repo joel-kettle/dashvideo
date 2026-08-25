@@ -3,8 +3,13 @@
   "name": "DashVideo",
   "version": "1.0.0",
   "description": "Custom seek, frame stepping, in-tab maximize, playback speed control, hotkeys and external subtitles for any HTML5 video.",
-  "permissions": ["storage", "activeTab"],
-  "host_permissions": ["<all_urls>"],
+  "permissions": [
+    "storage",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
   "action": {
     "default_title": "DashVideo",
     "default_popup": "src/popup/popup.html",
@@ -30,11 +35,15 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
+      "matches": [
+        "<all_urls>"
+      ],
       "all_frames": true,
       "match_about_blank": true,
       "run_at": "document_start",
-      "css": ["src/content/content.css"],
+      "css": [
+        "src/content/content.css"
+      ],
       "js": [
         "src/common/defaults.js",
         "src/common/hotkeys.js",
@@ -48,19 +57,37 @@
         "src/content/actions.js",
         "src/content/main.js"
       ]
+    },
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "all_frames": true,
+      "match_about_blank": true,
+      "run_at": "document_start",
+      "world": "MAIN",
+      "js": [
+        "src/page/fullscreen.js"
+      ]
     }
   ],
   "commands": {
     "toggle-maximize": {
-      "suggested_key": { "default": "Alt+M" },
+      "suggested_key": {
+        "default": "Alt+M"
+      },
       "description": "Maximize / restore the video in the tab"
     },
     "speed-up": {
-      "suggested_key": { "default": "Alt+Period" },
+      "suggested_key": {
+        "default": "Alt+Period"
+      },
       "description": "Increase playback speed"
     },
     "speed-down": {
-      "suggested_key": { "default": "Alt+Comma" },
+      "suggested_key": {
+        "default": "Alt+Comma"
+      },
       "description": "Decrease playback speed"
     }
   }

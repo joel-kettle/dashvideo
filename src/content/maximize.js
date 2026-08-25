@@ -225,6 +225,16 @@
     };
   }
 
+  var TARGET_ATTR = 'data-dashvideo-fullscreen';
+
+  /* The page-world hook mirrors this back to the site as
+     document.fullscreenElement plus a fullscreenchange event. */
+  function tellPage(on, requestId) {
+    try {
+      window.postMessage({ __dashvideo: 'fs-state', on: !!on, id: requestId || 0 }, '*');
+    } catch (e) { /* ignore */ }
+  }
+
   function bubble(on) {
     if (window === window.top) return;
     try {
@@ -239,11 +249,24 @@
   }
 
   function enter(video) {
-    if (own) return true;
     if (!video) return false;
-    own = promote(pickContainer(video), video);
+    return enterElement(pickContainer(video), video, 0);
+  }
+
+  /* Used by the hotkey (with the container DashVideo picked) and by the
+     fullscreen hook (with the element the player asked to blow up). */
+  function enterElement(target, video, requestId) {
+    if (own) {
+      /* Already maximized - a fullscreen request just confirms the state. */
+      tellPage(true, requestId);
+      return true;
+    }
+    if (!target) return false;
+    own = promote(target, video || null);
+    own.element.setAttribute(TARGET_ATTR, '');
     state.maximized = true;
     bubble(true);
+    tellPage(true, requestId);
     if (DV.ui) {
       DV.ui.ensure();
       DV.ui.refresh();
@@ -254,10 +277,12 @@
 
   function exit() {
     if (!own) return false;
+    own.element.removeAttribute(TARGET_ATTR);
     own.undo();
     own = null;
     state.maximized = false;
     bubble(false);
+    tellPage(false, 0);
     if (DV.ui) DV.ui.refresh();
     settle();
     return true;
@@ -322,6 +347,7 @@
 
   DV.maximize = {
     enter: enter,
+    enterElement: enterElement,
     exit: exit,
     toggle: toggle,
     applyFit: applyFit,

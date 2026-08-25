@@ -73,6 +73,9 @@
     /* How the picture fills the tab: contain, cover (zoom to fill) or fill */
     maximizeFit: 'contain',
 
+    /* Take over the player's own fullscreen button and hotkey */
+    replaceFullscreen: true,
+
     /* Speed */
     speedStep: 0.1,
     speedMin: 0.07,

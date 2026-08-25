@@ -354,6 +354,95 @@ const overlay = (page) => page.evaluate(() => {
   await page.close();
 }
 
+/* --- the player's own fullscreen button ---------------------------------- */
+{
+  const page = await open('fullscreen.html', { width: 1000, height: 620 });
+
+  await page.click('#fsButton');
+  await page.waitForTimeout(700);
+  const on = await page.evaluate(() => {
+    const p = document.getElementById('player');
+    const r = p.getBoundingClientRect();
+    return {
+      w: Math.round(r.width), h: Math.round(r.height),
+      view: { w: innerWidth, h: innerHeight },
+      dashvideo: p.hasAttribute('data-dashvideo-fullscreen'),
+      reported: document.fullscreenElement === p,
+      events: window.fsEvents,
+      label: document.getElementById('label').textContent,
+      button: document.getElementById('fsButton').textContent,
+      video: Math.round(document.getElementById('v').getBoundingClientRect().width)
+    };
+  });
+  check("the player's fullscreen button maximizes in the tab",
+    on.dashvideo && on.w === on.view.w && on.h === on.view.h && on.video === on.view.w,
+    JSON.stringify(on));
+  check('the page is told it is fullscreen', on.reported && on.events === 1,
+    `fullscreenElement=${on.reported} events=${on.events}`);
+  check('so the player switches to its fullscreen UI',
+    on.label === 'fullscreen' && on.button === 'Exit', `${on.label} / ${on.button}`);
+
+  const pixels = samplePixels(await page.screenshot(), [[0.5, 0.4], [0.3, 0.6]]);
+  check('and the picture is on screen', pixels.every((p) => p[0] + p[1] + p[2] > 60),
+    JSON.stringify(pixels));
+
+  /* The site's own exit button calls document.exitFullscreen(). */
+  await page.click('#fsButton');
+  await page.waitForTimeout(600);
+  const off = await page.evaluate(() => {
+    const p = document.getElementById('player');
+    return {
+      w: Math.round(p.getBoundingClientRect().width),
+      reported: document.fullscreenElement,
+      events: window.fsEvents,
+      label: document.getElementById('label').textContent,
+      leftovers: document.querySelectorAll('[data-dashvideo-promoted], [data-dashvideo-fullscreen]').length
+    };
+  });
+  check("the player's exit button restores the page",
+    off.w === 560 && off.reported === null && off.events === 2 &&
+    off.label === 'windowed' && off.leftovers === 0, JSON.stringify(off));
+
+  await page.click('#fsButton');
+  await page.waitForTimeout(500);
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(500);
+  const escaped = await page.evaluate(() => ({
+    w: Math.round(document.getElementById('player').getBoundingClientRect().width),
+    reported: document.fullscreenElement,
+    label: document.getElementById('label').textContent
+  }));
+  check('Escape exits too, and the player is told',
+    escaped.w === 560 && escaped.reported === null && escaped.label === 'windowed',
+    JSON.stringify(escaped));
+  await page.close();
+}
+
+/* --- and the site keeps real fullscreen when the takeover is off --------- */
+{
+  const [worker] = ctx.serviceWorkers();
+  await worker.evaluate(() => chrome.storage.sync.set({
+    settings: { replaceFullscreen: false }
+  }));
+  const page = await open('fullscreen.html', { width: 1000, height: 620 });
+  await page.waitForTimeout(400);
+  await page.click('#fsButton');
+  await page.waitForTimeout(700);
+  const native = await page.evaluate(() => {
+    const p = document.getElementById('player');
+    return {
+      dashvideo: p.hasAttribute('data-dashvideo-fullscreen'),
+      promoted: document.querySelectorAll('[data-dashvideo-promoted]').length,
+      reported: document.fullscreenElement === p
+    };
+  });
+  check('with the takeover off the request goes to the browser',
+    !native.dashvideo && native.promoted === 0 && native.reported, JSON.stringify(native));
+  await page.evaluate(() => document.fullscreenElement && document.exitFullscreen());
+  await worker.evaluate(() => chrome.storage.sync.remove('settings'));
+  await page.close();
+}
+
 /* --- subtitles ----------------------------------------------------------- */
 {
   const page = await open('plain.html');

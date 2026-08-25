@@ -19,6 +19,7 @@ The pages in `pages/` are deliberately hostile:
 | `hostile.html` | Every trap at once: a transformed ancestor, a static flex item with a z-index (a stacking context), `contain: paint`, `isolation: isolate`, a fixed site header and overlays above the player. Maximizing used to black-screen here. |
 | `letterbox.html` | A 4:3 video inside a 16:9 player that owns the control bar, the way YouTube letterboxes. |
 | `embed.html` | A cross-origin `<iframe>` on a second port, for the frame relaying and frame maximizing. |
+| `fullscreen.html` | A player that drives the fullscreen API itself, for the takeover: its button, its `fullscreenchange` handler and its exit button. |
 
 `pages/sample.webm` is a four second 30 fps test pattern; the frame-stepping
 checks depend on it being exactly 30 fps.

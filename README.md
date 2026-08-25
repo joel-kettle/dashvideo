@@ -13,7 +13,7 @@ subtitle file on top of any stream.
 | --- | --- |
 | **Custom seek** | Jump by your own interval (3 seconds by default) plus a second, longer jump. |
 | **Frame by frame** | Steps exactly one frame at a time. The real frame rate is measured while the video plays, so 24, 25, 29.97 and 60 fps sources all step correctly. |
-| **In-tab maximize** | Fills the browser tab with the video - no native fullscreen, so the rest of the browser stays put. It promotes the player, not the bare video, so the site's own controls come with it, and it survives hostile page layouts and cross-origin iframes. Fit, zoom to fill or stretch. |
+| **In-tab maximize** | Fills the browser tab with the video - no native fullscreen, so the rest of the browser stays put. It takes over the player's own fullscreen button, promotes the player rather than the bare video so the site's controls come with it, and survives hostile page layouts and cross-origin iframes. Fit, zoom to fill or stretch. |
 | **Playback speed** | Raise and lower the speed by your own step, reset to a default, and keep the speed when a player tries to reset it. |
 | **Hotkeys** | Every action is rebindable, including modifier combinations. They stay out of the way while you type. |
 | **Your own subtitles** | Attach a local `.srt`, `.vtt`, `.ass`/`.ssa` or `.sbv` file to any video - including streams that ship no subtitles - and nudge the timing while you watch. |
@@ -55,6 +55,15 @@ Hotkeys are ignored while the focus is in a text field, a text area or any
 <kbd>M</kbd> fills the tab with the video and <kbd>Esc</kbd> puts the page back.
 This is in-tab maximizing, not native fullscreen: the browser's own chrome stays
 where it is, and so does everything else you had open.
+
+**The player's own fullscreen button does this too.** DashVideo replaces the
+fullscreen API the page calls, so the button in the control bar, the site's
+fullscreen hotkey (<kbd>F</kbd> on most players) and double-clicking the video
+all maximize in the tab instead of taking over the screen. The page is then told
+it *is* fullscreen - `document.fullscreenElement` reports the player and a
+`fullscreenchange` event fires - so the player switches to its fullscreen
+layout, and its exit button works and brings you back. Turn the takeover off on
+the options page and the browser's real fullscreen returns.
 
 What gets blown up is the *player*, not the bare `<video>` - the closest
 ancestor that still has the video's box - so the site's own control bar, its
@@ -110,6 +119,12 @@ stay out of the way.
   one-line toolbar (28px tall, draggable by its grip and clamped to the video)
   centred at the top, the speed badge in the corner and the toast just below
   them. Only the subtitles sit at the bottom.
+* `src/page/fullscreen.js` is the one piece that runs in the page's own world
+  rather than the extension's isolated one - the only place `requestFullscreen`
+  can be replaced. It hands the element the player asked to blow up to the
+  content script through a DOM attribute, since the two worlds share the DOM but
+  not their values, and mirrors the maximized state back as
+  `document.fullscreenElement` and a `fullscreenchange` event.
 * Maximizing pins the player with inline `!important` styles and wipes every
   ancestor above it with `all: initial`. That last part is the whole trick: an
   ancestor that forms a stacking context - a transform, a filter, `isolation`,
@@ -141,6 +156,7 @@ is the folder you load.
 manifest.json
 src/common/      defaults, settings storage, hotkey matching (shared everywhere)
 src/content/     video detection, actions, overlay UI, maximize, subtitles
+src/page/        the fullscreen hook, injected into the page's own world
 src/popup/       toolbar popup
 src/options/     settings and hotkey editor
 src/background/  browser-level command handling
@@ -155,5 +171,9 @@ tests/           node --test suite, plus the Chromium checks in tests/browser/
   frame stepping precision depends on what the player exposes.
 * Frame stepping is as accurate as the source: variable-frame-rate videos have
   no single frame duration, so DashVideo uses the measured average.
+* Players that style their fullscreen layout with the `:fullscreen` CSS
+  pseudo-class rather than a class of their own will not pick up those styles,
+  because the page is not really fullscreen. Players that react to
+  `fullscreenchange` in JavaScript - which is most of them - are fine.
 * Pages that block extension content scripts (the Chrome Web Store,
   `chrome://` pages) are out of reach for any extension, DashVideo included.
