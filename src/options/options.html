@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DashVideo settings</title>
+  <link rel="stylesheet" href="options.css">
+</head>
+<body>
+  <header class="head">
+    <span class="logo" aria-hidden="true"></span>
+    <div>
+      <h1>DashVideo</h1>
+      <p class="tag">Seek, step, speed, maximize and subtitle any HTML5 video.</p>
+    </div>
+    <span class="saved" id="saved" hidden>Saved</span>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>Playback</h2>
+      <div class="field">
+        <label for="seekInterval">Custom seek interval</label>
+        <p class="hint">How far the seek hotkeys jump.</p>
+        <span class="control"><input type="number" id="seekInterval" data-setting="seekInterval" min="0.1" max="600" step="0.5"> seconds</span>
+      </div>
+      <div class="field">
+        <label for="seekIntervalLong">Long seek interval</label>
+        <p class="hint">The second, bigger jump.</p>
+        <span class="control"><input type="number" id="seekIntervalLong" data-setting="seekIntervalLong" min="1" max="3600" step="5"> seconds</span>
+      </div>
+      <div class="field">
+        <label for="fpsAuto">Detect frame rate automatically</label>
+        <p class="hint">Measures the real frame rate while the video plays and uses it for frame stepping.</p>
+        <span class="control"><input type="checkbox" id="fpsAuto" data-setting="fpsAuto"></span>
+      </div>
+      <div class="field">
+        <label for="fps">Fallback frame rate</label>
+        <p class="hint">Used when detection is off or the video has not played yet.</p>
+        <span class="control"><input type="number" id="fps" data-setting="fps" min="1" max="240" step="1"> fps</span>
+      </div>
+      <div class="field">
+        <label for="speedStep">Speed step</label>
+        <p class="hint">How much one press changes the playback speed.</p>
+        <span class="control"><input type="number" id="speedStep" data-setting="speedStep" min="0.01" max="2" step="0.05"> ×</span>
+      </div>
+      <div class="field">
+        <label for="speedDefault">Default speed</label>
+        <p class="hint">What the reset hotkey goes back to.</p>
+        <span class="control"><input type="number" id="speedDefault" data-setting="speedDefault" min="0.07" max="16" step="0.05"> ×</span>
+      </div>
+      <div class="field">
+        <label for="speedMin">Speed range</label>
+        <p class="hint">Lowest and highest speed DashVideo will set.</p>
+        <span class="control">
+          <input type="number" id="speedMin" data-setting="speedMin" min="0.05" max="1" step="0.05">
+          <span class="dash">to</span>
+          <input type="number" id="speedMax" data-setting="speedMax" min="1" max="16" step="0.5"> ×
+        </span>
+      </div>
+      <div class="field">
+        <label for="keepSpeed">Keep my speed</label>
+        <p class="hint">Re-apply the chosen speed when a player resets it (quality changes, ads, next episode).</p>
+        <span class="control"><input type="checkbox" id="keepSpeed" data-setting="keepSpeed"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Hotkeys</h2>
+      <p class="hint block">Click a shortcut, then press the keys you want. Press Esc to cancel, Backspace to unbind.
+        Hotkeys are ignored while you are typing in a text field.</p>
+      <div id="hotkeys"></div>
+      <p class="hint block">Browser-level shortcuts (they also work before you click the page) live in Chrome's own
+        shortcut settings. <button class="link" id="browserShortcuts">Open Chrome shortcuts</button></p>
+    </section>
+
+    <section class="card">
+      <h2>Subtitles</h2>
+      <div class="field">
+        <label for="subsSyncStep">Sync step</label>
+        <p class="hint">How much the sync hotkeys shift the subtitles.</p>
+        <span class="control"><input type="number" id="subsSyncStep" data-setting="subsSyncStep" min="0.05" max="10" step="0.05"> seconds</span>
+      </div>
+      <div class="field">
+        <label for="subsFontSize">Text size</label>
+        <p class="hint">Percentage of the video height, so it scales with the player.</p>
+        <span class="control"><input type="number" id="subsFontSize" data-setting="subsFontSize" min="1" max="15" step="0.2"> %</span>
+      </div>
+      <div class="field">
+        <label for="subsBottom">Distance from the bottom</label>
+        <span class="control"><input type="number" id="subsBottom" data-setting="subsBottom" min="0" max="60" step="1"> %</span>
+      </div>
+      <div class="field">
+        <label for="subsColor">Text colour</label>
+        <span class="control"><input type="color" id="subsColor" data-setting="subsColor"></span>
+      </div>
+      <div class="field">
+        <label for="subsBgOpacity">Background opacity</label>
+        <span class="control"><input type="range" id="subsBgOpacity" data-setting="subsBgOpacity" min="0" max="1" step="0.05"><output id="subsBgOpacityOut"></output></span>
+      </div>
+      <div class="field">
+        <label for="subsOutline">Outline the text</label>
+        <span class="control"><input type="checkbox" id="subsOutline" data-setting="subsOutline"></span>
+      </div>
+      <div class="preview" id="preview">
+        <div class="preview-cue" id="previewCue"><span>Preview of your subtitle style</span></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>On-screen feedback</h2>
+      <div class="field">
+        <label for="hud">Show the action overlay</label>
+        <p class="hint">The short message shown on the video when a hotkey fires.</p>
+        <span class="control"><input type="checkbox" id="hud" data-setting="hud"></span>
+      </div>
+      <div class="field">
+        <label for="hudDuration">Overlay duration</label>
+        <span class="control"><input type="number" id="hudDuration" data-setting="hudDuration" min="200" max="5000" step="100"> ms</span>
+      </div>
+      <div class="field">
+        <label for="badge">Show the speed badge</label>
+        <p class="hint">A small badge on the video whenever the speed is not 1×. Click it for the control panel.</p>
+        <span class="control"><input type="checkbox" id="badge" data-setting="badge"></span>
+      </div>
+      <div class="field">
+        <label for="panelDefaultVisible">Open the control panel automatically</label>
+        <span class="control"><input type="checkbox" id="panelDefaultVisible" data-setting="panelDefaultVisible"></span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Sites</h2>
+      <div class="field">
+        <label for="enabled">DashVideo is on</label>
+        <p class="hint">Turn everything off without uninstalling.</p>
+        <span class="control"><input type="checkbox" id="enabled" data-setting="enabled"></span>
+      </div>
+      <div class="field wide">
+        <label for="blocklist">Never run on these sites</label>
+        <p class="hint">One hostname per line, for example <code>meet.google.com</code>. Subdomains are included.</p>
+        <textarea id="blocklist" rows="4" spellcheck="false"></textarea>
+      </div>
+    </section>
+
+    <section class="card danger">
+      <h2>Reset</h2>
+      <p class="hint block">Put every setting and hotkey back to its default.</p>
+      <button id="reset" class="reset">Reset all settings</button>
+    </section>
+  </main>
+
+  <script src="../common/defaults.js"></script>
+  <script src="../common/hotkeys.js"></script>
+  <script src="../common/settings.js"></script>
+  <script src="options.js"></script>
+</body>
+</html>

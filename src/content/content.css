@@ -1,0 +1,20 @@
+/* DashVideo - page level styles. The overlay itself lives in a shadow root;
+   only the pieces DashVideo adds to the page are styled here. */
+dashvideo-ui {
+  all: initial;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2147483647;
+}
+
+[data-dashvideo-backdrop] {
+  pointer-events: auto;
+}
+
+@media print {
+  dashvideo-ui,
+  [data-dashvideo-backdrop] {
+    display: none !important;
+  }
+}

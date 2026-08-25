@@ -1,0 +1,67 @@
+{
+  "manifest_version": 3,
+  "name": "DashVideo",
+  "version": "1.0.0",
+  "description": "Custom seek, frame stepping, in-tab maximize, playback speed control, hotkeys and external subtitles for any HTML5 video.",
+  "permissions": ["storage", "activeTab"],
+  "host_permissions": ["<all_urls>"],
+  "action": {
+    "default_title": "DashVideo",
+    "default_popup": "src/popup/popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "background": {
+    "service_worker": "src/background/service-worker.js"
+  },
+  "options_ui": {
+    "page": "src/options/options.html",
+    "open_in_tab": true
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "all_frames": true,
+      "match_about_blank": true,
+      "run_at": "document_start",
+      "css": ["src/content/content.css"],
+      "js": [
+        "src/common/defaults.js",
+        "src/common/hotkeys.js",
+        "src/common/settings.js",
+        "src/content/util.js",
+        "src/content/ui.js",
+        "src/content/videos.js",
+        "src/content/maximize.js",
+        "src/content/subtitles/parser.js",
+        "src/content/subtitles/renderer.js",
+        "src/content/actions.js",
+        "src/content/main.js"
+      ]
+    }
+  ],
+  "commands": {
+    "toggle-maximize": {
+      "suggested_key": { "default": "Alt+M" },
+      "description": "Maximize / restore the video in the tab"
+    },
+    "speed-up": {
+      "suggested_key": { "default": "Alt+Period" },
+      "description": "Increase playback speed"
+    },
+    "speed-down": {
+      "suggested_key": { "default": "Alt+Comma" },
+      "description": "Decrease playback speed"
+    }
+  }
+}

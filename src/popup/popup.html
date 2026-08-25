@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>DashVideo</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header class="head">
+    <span class="logo" aria-hidden="true"></span>
+    <h1>DashVideo</h1>
+    <button id="openOptions" class="icon" title="All settings and hotkeys">⚙</button>
+  </header>
+
+  <p id="status" class="status">Looking for a video…</p>
+
+  <section class="card" id="controls" hidden>
+    <div class="group">
+      <span class="label">Speed</span>
+      <div class="row">
+        <button data-do="speedDown" title="Slower">−</button>
+        <output id="speedValue" class="value">1.00×</output>
+        <button data-do="speedUp" title="Faster">+</button>
+        <button data-do="speedReset" class="slim" title="Reset to default speed">↺</button>
+      </div>
+      <div class="row presets" id="presets"></div>
+    </div>
+
+    <div class="group">
+      <span class="label">Seek</span>
+      <div class="row">
+        <button data-do="seekBack" id="seekBack">⏪ 3s</button>
+        <button data-do="seekForward" id="seekForward">3s ⏩</button>
+      </div>
+      <div class="row">
+        <button data-do="frameBack" title="Previous frame">◀❘ Frame</button>
+        <output id="fpsValue" class="value small">30 fps</output>
+        <button data-do="frameForward" title="Next frame">Frame ❘▶</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <span class="label">View</span>
+      <div class="row">
+        <button data-do="maximize" id="maximize">⛶ Maximize in tab</button>
+      </div>
+      <div class="row">
+        <button data-do="panelToggle">Show on-video controls</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <span class="label">Subtitles</span>
+      <div class="row">
+        <button id="pickSubs">Load subtitle file…</button>
+      </div>
+      <div id="subsInfo" hidden>
+        <p class="subsname" id="subsName"></p>
+        <div class="row">
+          <button data-do="subsDelayMinus" title="Show subtitles earlier">−</button>
+          <output id="subsOffset" class="value small">0s</output>
+          <button data-do="subsDelayPlus" title="Show subtitles later">+</button>
+          <button data-do="subsToggle" id="subsToggle" class="slim" title="Show / hide">CC</button>
+          <button data-do="subsClear" class="slim" title="Remove subtitles">✕</button>
+        </div>
+      </div>
+      <input type="file" id="subsFile" accept=".srt,.vtt,.ass,.ssa,.sbv,.txt" hidden>
+    </div>
+  </section>
+
+  <section class="card tune">
+    <div class="tune-row">
+      <label for="seekInterval">Seek interval</label>
+      <span><input type="number" id="seekInterval" min="0.1" max="600" step="0.5"> s</span>
+    </div>
+    <div class="tune-row">
+      <label for="seekIntervalLong">Long seek</label>
+      <span><input type="number" id="seekIntervalLong" min="1" max="3600" step="5"> s</span>
+    </div>
+    <div class="tune-row">
+      <label for="speedStep">Speed step</label>
+      <span><input type="number" id="speedStep" min="0.01" max="2" step="0.05"> ×</span>
+    </div>
+    <div class="tune-row">
+      <label for="fps">Frame rate</label>
+      <span><input type="number" id="fps" min="1" max="240" step="1"> fps</span>
+    </div>
+    <div class="tune-row">
+      <label for="fpsAuto">Detect frame rate automatically</label>
+      <span><input type="checkbox" id="fpsAuto"></span>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <span id="hotkeyHint"></span>
+    <a href="#" id="allHotkeys">All hotkeys →</a>
+  </footer>
+
+  <script src="../common/defaults.js"></script>
+  <script src="../common/hotkeys.js"></script>
+  <script src="../common/settings.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
