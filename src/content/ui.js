@@ -1,5 +1,10 @@
 /* DashVideo - the on-video overlay (toast, badge, control panel, subtitles).
-   Everything lives in a shadow root so page styles cannot reach it. */
+   Everything lives in a shadow root so page styles cannot reach it.
+
+   The chrome is deliberately small and pinned to the top edge of the video:
+   a one-line toolbar centred at the top, the speed badge in the top-left
+   corner and the toast tucked underneath them. Only the subtitles sit at the
+   bottom, where subtitles belong. */
 (function (root) {
   'use strict';
 
@@ -20,49 +25,50 @@
     '.anchor { position: absolute; left: 0; top: 0; width: 0; height: 0; pointer-events: none;',
     '  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }',
 
-    /* toast */
-    '.toast { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);',
-    '  padding: 10px 18px; border-radius: 10px; background: rgba(18, 18, 20, .82);',
-    '  color: #fff; font-size: 20px; font-weight: 600; letter-spacing: .2px; line-height: 1.25;',
-    '  text-align: center; white-space: pre-line; opacity: 0; transition: opacity .12s ease;',
-    '  box-shadow: 0 6px 24px rgba(0,0,0,.45); backdrop-filter: blur(6px); }',
+    /* toast - one short line under the toolbar */
+    '.toast { position: absolute; left: 50%; top: 8px; transform: translateX(-50%);',
+    '  width: max-content; max-width: calc(100% - 16px); padding: 5px 11px; border-radius: 7px;',
+    '  background: rgba(18, 18, 20, .82); color: #fff; font-size: 13px; font-weight: 600;',
+    '  line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;',
+    '  opacity: 0; transition: opacity .12s ease; box-shadow: 0 3px 14px rgba(0,0,0,.4);',
+    '  backdrop-filter: blur(6px); }',
     '.toast.on { opacity: 1; }',
-    '.anchor.paneled .toast { left: auto; right: 12px; top: 12px; transform: none;',
-    '  font-size: 16px; padding: 8px 14px; text-align: right; }',
-    '.toast .sub { display: block; margin-top: 3px; font-size: 13px; font-weight: 500; opacity: .72; }',
+    '.toast .sub { margin-left: 7px; font-size: 11.5px; font-weight: 500; opacity: .62; }',
 
     /* speed badge */
-    '.badge { position: absolute; left: 10px; top: 10px; padding: 3px 8px; border-radius: 6px;',
-    '  background: rgba(18, 18, 20, .72); color: #fff; font-size: 13px; font-weight: 600;',
-    '  cursor: pointer; pointer-events: auto; opacity: .55; transition: opacity .12s ease;',
+    '.badge { position: absolute; left: 8px; top: 8px; padding: 2px 6px; border-radius: 5px;',
+    '  background: rgba(18, 18, 20, .7); color: #fff; font-size: 11px; font-weight: 600;',
+    '  cursor: pointer; pointer-events: auto; opacity: .5; transition: opacity .12s ease;',
     '  user-select: none; }',
     '.badge:hover { opacity: 1; }',
     '.badge[hidden] { display: none; }',
 
-    /* control panel */
-    '.panel { position: absolute; left: 10px; top: 10px; width: 232px; padding: 8px;',
-    '  border-radius: 12px; background: rgba(18, 18, 20, .9); color: #fff; pointer-events: auto;',
-    '  box-shadow: 0 8px 30px rgba(0,0,0,.5); backdrop-filter: blur(8px); user-select: none;',
-    '  border: 1px solid rgba(255,255,255,.09); }',
+    /* control toolbar */
+    '.panel { position: absolute; left: 50%; top: 8px; transform: translateX(-50%);',
+    '  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 3px;',
+    '  width: max-content; max-width: calc(100% - 16px); padding: 3px 4px; border-radius: 8px;',
+    '  background: rgba(18, 18, 20, .84); color: #fff; pointer-events: auto;',
+    '  box-shadow: 0 3px 16px rgba(0,0,0,.45); backdrop-filter: blur(8px);',
+    '  border: 1px solid rgba(255,255,255,.08); user-select: none; opacity: .92; }',
+    '.panel:hover { opacity: 1; }',
     '.panel[hidden] { display: none; }',
-    '.head { display: flex; align-items: center; gap: 6px; padding: 0 2px 7px; cursor: move; }',
-    '.head .title { font-size: 12px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase;',
-    '  opacity: .62; flex: 1; }',
-    '.row { display: flex; align-items: center; gap: 5px; margin-top: 5px; }',
-    '.row .lbl { font-size: 10px; text-transform: uppercase; letter-spacing: .5px; opacity: .5;',
-    '  width: 34px; flex: none; }',
-    'button { flex: 1; min-width: 0; height: 26px; padding: 0 6px; border: 0; border-radius: 7px;',
-    '  background: rgba(255,255,255,.1); color: #fff; font-size: 12px; font-weight: 600;',
-    '  font-family: inherit; cursor: pointer; line-height: 1; white-space: nowrap;',
-    '  overflow: hidden; text-overflow: ellipsis; }',
-    'button:hover { background: rgba(255,255,255,.2); }',
+    '.grp { display: flex; align-items: center; gap: 1px; }',
+    '.grp[hidden] { display: none; }',
+    '.grp + .grp { margin-left: 2px; padding-left: 4px;',
+    '  border-left: 1px solid rgba(255,255,255,.13); }',
+    '.grip { padding: 0 3px; cursor: move; opacity: .35; font-size: 12px; line-height: 1;',
+    '  letter-spacing: -2px; }',
+    '.grip:hover { opacity: .7; }',
+    'button { height: 20px; min-width: 20px; padding: 0 4px; border: 0; border-radius: 5px;',
+    '  background: transparent; color: #fff; font-size: 11px; font-weight: 600;',
+    '  font-family: inherit; line-height: 1; cursor: pointer; white-space: nowrap;',
+    '  opacity: .85; }',
+    'button:hover { background: rgba(255,255,255,.18); opacity: 1; }',
     'button:active { background: rgba(255,255,255,.28); }',
-    'button.ghost { background: transparent; opacity: .6; flex: none; width: 28px; padding: 0 2px; }',
-    'button.ghost:hover { background: rgba(255,255,255,.14); opacity: 1; }',
-    'button.on { background: #3b82f6; }',
-    '.value { flex: 1.3; text-align: center; font-size: 12px; font-variant-numeric: tabular-nums;',
-    '  opacity: .9; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }',
-    '.note { margin-top: 6px; font-size: 10.5px; opacity: .45; text-align: center; line-height: 1.35; }',
+    'button.on { background: #3b82f6; opacity: 1; }',
+    'button.close { opacity: .45; font-size: 13px; margin-left: 1px; }',
+    '.value { min-width: 32px; padding: 0 1px; text-align: center; font-size: 11px;',
+    '  font-variant-numeric: tabular-nums; opacity: .85; }',
 
     /* subtitles */
     '.subs { position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden; }',
@@ -79,7 +85,7 @@
   var els = {};
   var rafId = 0;
   var toastTimer = 0;
-  var drag = { on: false, dx: 0, dy: 0, x: 10, y: 10, moved: false };
+  var drag = { on: false, dx: 0, dy: 0, moved: false, placed: false };
 
   function el(tag, cls, text) {
     var node = document.createElement(tag);
@@ -88,79 +94,69 @@
     return node;
   }
 
-  function button(act, label, cls) {
+  function button(act, label, title, cls) {
     var b = el('button', cls || '', label);
     b.setAttribute('data-act', act);
     b.type = 'button';
+    if (title) b.title = title;
     return b;
+  }
+
+  function group() {
+    return el('div', 'grp');
   }
 
   function buildPanel() {
     var panel = el('div', 'panel');
     panel.hidden = true;
 
-    var head = el('div', 'head');
-    head.appendChild(el('span', 'title', 'DashVideo'));
-    head.appendChild(button('panelClose', '×', 'ghost'));
-    panel.appendChild(head);
+    els.grip = el('span', 'grip', '⋮⋮');
+    els.grip.title = 'Drag to move';
+    panel.appendChild(els.grip);
 
-    var speed = el('div', 'row');
-    speed.appendChild(el('span', 'lbl', 'Speed'));
-    speed.appendChild(button('speedDown', '−'));
-    var speedValue = el('span', 'value', '1.00×');
-    speed.appendChild(speedValue);
-    speed.appendChild(button('speedUp', '+'));
-    speed.appendChild(button('speedReset', '↺', 'ghost'));
+    var speed = group();
+    speed.appendChild(button('speedDown', '−', 'Slower'));
+    els.speedValue = el('span', 'value', '1.00×');
+    speed.appendChild(els.speedValue);
+    speed.appendChild(button('speedUp', '+', 'Faster'));
+    speed.appendChild(button('speedReset', '↺', 'Reset speed'));
     panel.appendChild(speed);
 
-    var seek = el('div', 'row');
-    seek.appendChild(el('span', 'lbl', 'Seek'));
-    var seekBack = button('seekBack', '⏪ 3s');
-    var seekFwd = button('seekForward', '3s ⏩');
-    seek.appendChild(seekBack);
-    seek.appendChild(seekFwd);
+    var seek = group();
+    els.seekBack = button('seekBack', '⏪3s', 'Seek backward');
+    els.seekFwd = button('seekForward', '3s⏩', 'Seek forward');
+    seek.appendChild(els.seekBack);
+    seek.appendChild(els.seekFwd);
     panel.appendChild(seek);
 
-    var frame = el('div', 'row');
-    frame.appendChild(el('span', 'lbl', 'Frame'));
-    frame.appendChild(button('frameBack', '◀❘'));
-    var frameValue = el('span', 'value', '30 fps');
-    frame.appendChild(frameValue);
-    frame.appendChild(button('frameForward', '❘▶'));
+    var frame = group();
+    els.frameBack = button('frameBack', '◀❘', 'Previous frame');
+    els.frameFwd = button('frameForward', '❘▶', 'Next frame');
+    frame.appendChild(els.frameBack);
+    frame.appendChild(els.frameFwd);
     panel.appendChild(frame);
 
-    var view = el('div', 'row');
-    view.appendChild(el('span', 'lbl', 'View'));
-    var maxBtn = button('maximize', '⛶ Maximize');
-    view.appendChild(maxBtn);
+    var view = group();
+    els.maxBtn = button('maximize', '⛶', 'Maximize in tab');
+    els.subsBtn = button('subsLoad', 'CC', 'Load a subtitle file');
+    view.appendChild(els.maxBtn);
+    view.appendChild(els.subsBtn);
     panel.appendChild(view);
+    els.viewGroup = view;
 
-    var subsRow = el('div', 'row');
-    subsRow.appendChild(el('span', 'lbl', 'Subs'));
-    var subsBtn = button('subsLoad', 'Load file…');
-    subsRow.appendChild(subsBtn);
-    panel.appendChild(subsRow);
+    els.syncGroup = group();
+    els.syncGroup.hidden = true;
+    els.syncGroup.appendChild(button('subsDelayMinus', '−', 'Subtitles earlier'));
+    els.syncValue = el('span', 'value', '+0s');
+    els.syncGroup.appendChild(els.syncValue);
+    els.syncGroup.appendChild(button('subsDelayPlus', '+', 'Subtitles later'));
+    els.syncGroup.appendChild(button('panelClose', '×', 'Hide these controls', 'close'));
+    panel.appendChild(els.syncGroup);
 
-    var syncRow = el('div', 'row');
-    syncRow.hidden = true;
-    syncRow.appendChild(el('span', 'lbl', 'Sync'));
-    syncRow.appendChild(button('subsDelayMinus', '−'));
-    var syncValue = el('span', 'value', '0s');
-    syncRow.appendChild(syncValue);
-    syncRow.appendChild(button('subsDelayPlus', '+'));
-    syncRow.appendChild(button('subsToggle', 'CC', 'ghost'));
-    panel.appendChild(syncRow);
+    els.close = button('panelClose', '×', 'Hide these controls', 'close');
+    view.appendChild(els.close);
 
     els.panel = panel;
-    els.speedValue = speedValue;
-    els.seekBack = seekBack;
-    els.seekFwd = seekFwd;
-    els.frameValue = frameValue;
-    els.maxBtn = maxBtn;
-    els.subsBtn = subsBtn;
-    els.syncRow = syncRow;
-    els.syncValue = syncValue;
-    els.head = head;
     return panel;
   }
 
@@ -239,28 +235,40 @@
       if (e.target === els.badge && !drag.moved) togglePanel();
     });
 
-    /* Keystrokes typed over the panel must not reach the page. */
+    /* Keystrokes over the toolbar must not reach the page. */
     shadow.addEventListener('keydown', function (e) { e.stopPropagation(); });
 
-    els.head.addEventListener('pointerdown', function (e) {
-      if (e.target.getAttribute && e.target.getAttribute('data-act')) return;
+    els.grip.addEventListener('pointerdown', function (e) {
+      var panel = els.panel.getBoundingClientRect();
+      var anchor = els.anchor.getBoundingClientRect();
+      /* Switch from the centred position to explicit coordinates on first drag. */
+      var x = panel.left - anchor.left;
+      var y = panel.top - anchor.top;
+      els.panel.style.transform = 'none';
+      els.panel.style.left = x + 'px';
+      els.panel.style.top = y + 'px';
       drag.on = true;
+      drag.placed = true;
       drag.moved = false;
-      drag.dx = e.clientX - drag.x;
-      drag.dy = e.clientY - drag.y;
-      els.head.setPointerCapture(e.pointerId);
+      drag.dx = e.clientX - x;
+      drag.dy = e.clientY - y;
+      els.grip.setPointerCapture(e.pointerId);
       e.preventDefault();
     });
-    els.head.addEventListener('pointermove', function (e) {
+
+    els.grip.addEventListener('pointermove', function (e) {
       if (!drag.on) return;
-      drag.x = e.clientX - drag.dx;
-      drag.y = e.clientY - drag.dy;
+      var anchor = els.anchor.getBoundingClientRect();
+      var panel = els.panel.getBoundingClientRect();
+      var x = DV.util.clamp(e.clientX - drag.dx, 0, Math.max(0, anchor.width - panel.width));
+      var y = DV.util.clamp(e.clientY - drag.dy, 0, Math.max(0, anchor.height - panel.height));
+      els.panel.style.left = x + 'px';
+      els.panel.style.top = y + 'px';
       drag.moved = true;
-      els.panel.style.left = drag.x + 'px';
-      els.panel.style.top = drag.y + 'px';
     });
-    els.head.addEventListener('pointerup', function () { drag.on = false; });
-    els.head.addEventListener('pointercancel', function () { drag.on = false; });
+
+    els.grip.addEventListener('pointerup', function () { drag.on = false; });
+    els.grip.addEventListener('pointercancel', function () { drag.on = false; });
 
     document.addEventListener('fullscreenchange', function () {
       if (host) attachHost();
@@ -312,6 +320,14 @@
     if (DV.subs && DV.subs.tick) DV.subs.tick(video, rect);
   }
 
+  /* Keep the toast clear of the toolbar when both are on screen. */
+  function placeToast() {
+    if (!els.toast) return;
+    els.toast.style.top = state.panel && !drag.placed
+      ? (els.panel.offsetHeight + 12) + 'px'
+      : '';
+  }
+
   function toast(text, sub) {
     if (!state.settings.hud) return;
     var shadowRoot = ensure();
@@ -319,10 +335,8 @@
     startLoop();
     els.toast.textContent = '';
     els.toast.appendChild(document.createTextNode(text));
-    if (sub) {
-      var s = el('span', 'sub', sub);
-      els.toast.appendChild(s);
-    }
+    if (sub) els.toast.appendChild(el('span', 'sub', sub));
+    placeToast();
     els.toast.classList.add('on');
     clearTimeout(toastTimer);
     toastTimer = setTimeout(function () {
@@ -342,7 +356,6 @@
     startLoop();
     state.panel = true;
     els.panel.hidden = false;
-    els.anchor.classList.add('paneled');
     setBadge(null);
     DV.ui.refresh();
   }
@@ -350,7 +363,6 @@
   function hidePanel() {
     state.panel = false;
     if (els.panel) els.panel.hidden = true;
-    if (els.anchor) els.anchor.classList.remove('paneled');
     DV.ui.refresh();
   }
 
@@ -358,7 +370,7 @@
     if (state.panel) hidePanel(); else showPanel();
   }
 
-  /* Push the current video/settings state into the panel and badge. */
+  /* Push the current video/settings state into the toolbar and badge. */
   function refresh() {
     startLoop();
     var s = state.settings;
@@ -368,21 +380,28 @@
     if (!els.panel || els.panel.hidden) return;
 
     els.speedValue.textContent = DV.util.round(rate, 2).toFixed(2) + '×';
-    els.seekBack.textContent = '⏪ ' + s.seekInterval + 's';
-    els.seekFwd.textContent = s.seekInterval + 's ⏩';
-    var fps = (DV.videos && v) ? DV.videos.fps(v) : s.fps;
-    els.frameValue.textContent = Math.round(fps) + ' fps';
-    els.maxBtn.textContent = state.maximized ? '⛶ Restore' : '⛶ Maximize';
+    els.seekBack.textContent = '⏪' + s.seekInterval + 's';
+    els.seekFwd.textContent = s.seekInterval + 's⏩';
+
+    var fps = Math.round((DV.videos && v) ? DV.videos.fps(v) : s.fps);
+    els.frameBack.title = 'Previous frame (' + fps + ' fps)';
+    els.frameFwd.title = 'Next frame (' + fps + ' fps)';
+
+    els.maxBtn.title = state.maximized ? 'Restore the size' : 'Maximize in tab';
     els.maxBtn.classList.toggle('on', state.maximized);
 
     var subs = state.subs;
     var loaded = subs.cues.length > 0;
-    els.subsBtn.textContent = loaded ? (subs.name || 'Subtitles').slice(0, 22) : 'Load file…';
-    els.syncRow.hidden = !loaded;
-    if (loaded) {
-      els.syncValue.textContent = DV.util.formatSigned(subs.offset) + 's';
-      els.syncRow.querySelector('[data-act="subsToggle"]').classList.toggle('on', subs.enabled);
-    }
+    /* One CC button: loads a file when there is none, toggles it once loaded. */
+    els.subsBtn.setAttribute('data-act', loaded ? 'subsToggle' : 'subsLoad');
+    els.subsBtn.title = loaded
+      ? (subs.enabled ? 'Hide ' : 'Show ') + subs.name
+      : 'Load a subtitle file';
+    els.subsBtn.classList.toggle('on', loaded && subs.enabled);
+    els.syncGroup.hidden = !loaded;
+    els.close.hidden = loaded;
+    if (loaded) els.syncValue.textContent = DV.util.formatSigned(subs.offset) + 's';
+    placeToast();
   }
 
   DV.ui = {

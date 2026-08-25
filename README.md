@@ -5,7 +5,7 @@ HTML5 video: custom seek intervals, frame-by-frame stepping, in-tab
 maximizing, playback speed steps, hotkeys for all of it, and your own
 subtitle file on top of any stream.
 
-![The overlay panel, a toast and an attached subtitle track on a video](docs/overlay.png)
+![The control toolbar, a toast and an attached subtitle track on a video](docs/overlay.png)
 
 ## Features
 
@@ -36,7 +36,7 @@ DashVideo is a plain Manifest V3 extension with no build step:
 | <kbd>S</kbd> / <kbd>D</kbd> | Slower / faster by the speed step (0.1×) |
 | <kbd>R</kbd> | Reset the speed |
 | <kbd>M</kbd> | Maximize in the tab (<kbd>Esc</kbd> restores) |
-| <kbd>V</kbd> | Show / hide the on-video control panel |
+| <kbd>V</kbd> | Show / hide the on-video control toolbar |
 | <kbd>Shift</kbd>+<kbd>C</kbd> | Load a subtitle file |
 | <kbd>C</kbd> | Show / hide the subtitles |
 | <kbd>[</kbd> / <kbd>]</kbd> | Shift the subtitles earlier / later by the sync step (0.5s) |
@@ -69,7 +69,7 @@ uploaded - the file is parsed locally and drawn over the video.
 
 ## Settings
 
-The popup carries the controls you reach for mid-video plus the seek interval,
+The popup carries the same controls in a roomier form, plus the seek interval,
 long seek, speed step and frame rate. The options page has everything else:
 the full hotkey editor, the speed range and default, subtitle appearance,
 on-screen feedback, and a per-site block list for pages where DashVideo should
@@ -81,8 +81,12 @@ stay out of the way.
   video the user means (largest, visible, playing - shadow DOM included), keeps
   its playback rate, and measures the frame rate with
   `requestVideoFrameCallback`.
-* The overlay - toast, speed badge, control panel and subtitles - lives in a
+* The overlay - toast, speed badge, control toolbar and subtitles - lives in a
   shadow root, so page CSS cannot reach it and it cannot leak into the page.
+  The chrome is deliberately slim and pinned to the top edge of the video: a
+  one-line toolbar (28px tall, draggable by its grip and clamped to the video)
+  centred at the top, the speed badge in the corner and the toast just below
+  them. Only the subtitles sit at the bottom.
 * Maximizing pins the video with inline `!important` styles, neutralises the
   ancestor transforms, filters and `contain` values that would otherwise trap a
   fixed element, and covers the page with a black backdrop.

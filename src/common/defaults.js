@@ -28,7 +28,7 @@
     { id: 'speedUp', group: 'Speed', label: 'Faster', hint: 'By the speed step' },
     { id: 'speedReset', group: 'Speed', label: 'Reset speed', hint: 'Back to the default speed' },
     { id: 'maximize', group: 'View', label: 'Maximize in tab', hint: 'Fill the tab with the video' },
-    { id: 'panelToggle', group: 'View', label: 'Show / hide controls', hint: 'The small overlay panel' },
+    { id: 'panelToggle', group: 'View', label: 'Show / hide controls', hint: 'The compact toolbar at the top of the video' },
     { id: 'playPause', group: 'View', label: 'Play / pause', hint: 'Unbound by default' },
     { id: 'mute', group: 'View', label: 'Mute / unmute', hint: 'Unbound by default' },
     { id: 'subsLoad', group: 'Subtitles', label: 'Load subtitle file', hint: 'Opens a file picker (.srt .vtt .ass)' },
