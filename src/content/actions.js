@@ -74,6 +74,7 @@
       height: v ? v.videoHeight : 0,
       fps: v ? util.round(DV.videos.fps(v), 3) : state.settings.fps,
       maximized: !!state.maximized,
+      fit: state.settings.maximizeFit,
       panel: !!state.panel,
       subs: {
         loaded: subs.cues.length > 0,
@@ -84,6 +85,13 @@
       }
     };
   }
+
+  var FIT_LABELS = { contain: '⛶ Fit', cover: '⛶ Zoom to fill', fill: '⛶ Stretch' };
+  var FIT_HINTS = {
+    contain: 'Whole picture, black bars',
+    cover: 'Fills the tab, edges cropped',
+    fill: 'Fills the tab, aspect ratio ignored'
+  };
 
   var handlers = {
     seekBack: function (v, s) { return seekBy(v, -s.seekInterval); },
@@ -114,6 +122,15 @@
     maximize: function (v) {
       var on = DV.maximize.toggle(v);
       DV.ui.toast(on ? '⛶ Maximized' : '⛶ Restored', on ? 'Press Esc to restore' : '');
+      return true;
+    },
+    maximizeFit: function (v, s) {
+      var order = ['contain', 'cover', 'fill'];
+      var next = order[(order.indexOf(s.maximizeFit) + 1) % order.length] || 'contain';
+      s.maximizeFit = next;
+      DV.maximize.applyFit(v);
+      DV.settings.set({ maximizeFit: next });
+      DV.ui.toast(FIT_LABELS[next], FIT_HINTS[next]);
       return true;
     },
     panelToggle: function () {

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Letterboxing player</title>
+<!-- A 4:3 video inside a 16:9 player, the way YouTube letterboxes: the player
+     box is bigger than the video box, and it owns the control bar. -->
+<style>
+  body { margin:0; background:#101014; color:#ddd; font-family:sans-serif; }
+  .page { display:grid; grid-template-columns:1fr 300px; gap:20px; padding:20px; }
+  .stage { isolation:isolate; }
+  .player { position:relative; width:640px; height:360px; background:#000; z-index:2; }
+  .container { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; }
+  .container video { width:480px; height:360px; }
+  .bar { position:absolute; left:0; right:0; bottom:0; height:36px; z-index:60;
+         background:linear-gradient(transparent,rgba(0,0,0,.85)); color:#fff;
+         display:flex; align-items:center; padding:0 12px; font-size:13px; }
+  aside { background:#1b1d24; border-radius:8px; padding:12px; }
+</style></head>
+<body><div class="page">
+  <div class="stage">
+    <div class="player" id="player">
+      <div class="container"><video id="v" src="sample.webm" preload="auto"></video></div>
+      <div class="bar" id="controls">▶ player controls</div>
+    </div>
+  </div>
+  <aside>related videos</aside>
+</div></body></html>

@@ -80,6 +80,12 @@
     '.subs-box span.cue { display: inline-block; padding: .12em .4em; border-radius: .12em; }'
   ].join('\n');
 
+  var FIT_TITLES = {
+    contain: 'fit the whole picture',
+    cover: 'zoom to fill, cropping the edges',
+    fill: 'stretch to fill, ignoring the aspect ratio'
+  };
+
   var host = null;
   var shadow = null;
   var els = {};
@@ -138,8 +144,11 @@
 
     var view = group();
     els.maxBtn = button('maximize', '⛶', 'Maximize in tab');
+    els.fitBtn = button('maximizeFit', 'Fit', 'Cycle the picture fit');
+    els.fitBtn.hidden = true;
     els.subsBtn = button('subsLoad', 'CC', 'Load a subtitle file');
     view.appendChild(els.maxBtn);
+    view.appendChild(els.fitBtn);
     view.appendChild(els.subsBtn);
     panel.appendChild(view);
     els.viewGroup = view;
@@ -389,6 +398,11 @@
 
     els.maxBtn.title = state.maximized ? 'Restore the size' : 'Maximize in tab';
     els.maxBtn.classList.toggle('on', state.maximized);
+
+    var fit = s.maximizeFit === 'cover' ? 'Fill' : s.maximizeFit === 'fill' ? 'Str' : 'Fit';
+    els.fitBtn.hidden = !state.maximized;
+    els.fitBtn.textContent = fit;
+    els.fitBtn.title = 'Picture fit: ' + FIT_TITLES[s.maximizeFit || 'contain'];
 
     var subs = state.subs;
     var loaded = subs.cues.length > 0;

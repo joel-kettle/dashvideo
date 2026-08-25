@@ -1,0 +1,13 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Plain page</title>
+<style>
+  body { margin:0; padding:20px; background:#111; color:#eee; font-family:sans-serif; }
+  /* A transformed, filtered ancestor: a containing block for fixed elements. */
+  .wrap { transform: translateZ(0); filter: saturate(1.1); position: relative; z-index: 3; }
+  video { width:480px; height:360px; background:#000; }
+</style></head>
+<body>
+  <h1>Plain page</h1>
+  <input id="typing" placeholder="type here">
+  <div class="wrap"><video id="v" src="sample.webm" preload="auto"></video></div>
+</body></html>

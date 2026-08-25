@@ -1,140 +1,226 @@
 /* DashVideo - in-tab maximizing.
 
-   The video is pinned to the viewport with inline !important styles (inline so
-   it also works for players living inside a shadow root), ancestors that would
-   trap a fixed element - transforms, filters, `contain` - are neutralised, and
-   a black backdrop covers the page underneath. When the video sits in an
-   iframe, the frame asks its parent to give the same treatment to the <iframe>
-   element itself so the video really fills the tab, not just the frame. */
+   Pinning the <video> alone is not enough: any ancestor that forms a stacking
+   context (a transform, a filter, `isolation`, or simply a flex item with a
+   z-index) traps the fixed element inside it, so the video ends up painted
+   below the rest of the page - a black screen. The fix, the same one the
+   Windowed extension uses, is to wipe the ancestors with `all: initial`, which
+   removes those stacking contexts altogether instead of trying to out-stack
+   them.
+
+   What gets promoted is the player container rather than the bare video - the
+   closest ancestor that still has the video's box - so the site's own control
+   bar comes along and stays usable, exactly like native fullscreen.
+
+   Styles are written inline with !important: that beats any author rule,
+   reaches players living in a shadow root, and restores exactly, because the
+   whole `style` attribute is stashed and put back. */
 (function (root) {
   'use strict';
 
   var DV = (root.DV = root.DV || {});
   var state = DV.state;
 
-  var Z_VIDEO = 2147483640;
-  var Z_BACKDROP = 2147483639;
+  var Z = 2147483646;                    /* just below the DashVideo overlay */
 
-  var TRAPPING = ['transform', 'filter', 'backdrop-filter', 'perspective', 'contain',
-    'will-change', 'mask', 'clip-path', 'transform-style'];
-
-  var NEUTRAL = {
+  /* Everything that can clip, hide or trap a fixed descendant. */
+  var CLEAN = {
     transform: 'none',
     filter: 'none',
     'backdrop-filter': 'none',
     perspective: 'none',
     contain: 'none',
     'will-change': 'auto',
+    isolation: 'auto',
+    'mix-blend-mode': 'normal',
     mask: 'none',
     'clip-path': 'none',
-    'transform-style': 'flat',
-    opacity: '1'
+    opacity: '1',
+    'transform-style': 'flat'
   };
 
-  var FILL = {
+  var TARGET = Object.assign({}, CLEAN, {
     position: 'fixed',
     left: '0px',
     top: '0px',
     right: 'auto',
     bottom: 'auto',
-    width: '100vw',
-    height: '100vh',
-    'max-width': '100vw',
-    'max-height': '100vh',
+    width: '100%',
+    height: '100%',
     'min-width': '0',
     'min-height': '0',
+    'max-width': 'none',
+    'max-height': 'none',
     margin: '0',
     padding: '0',
     border: '0',
     'border-radius': '0',
-    'z-index': String(Z_VIDEO),
+    'z-index': String(Z),
     background: '#000',
-    'object-fit': 'contain',
-    transform: 'none',
-    'clip-path': 'none',
     display: 'block',
     visibility: 'visible',
-    opacity: '1'
-  };
+    overflow: 'visible',
+    float: 'none',
+    'pointer-events': 'auto'
+  });
+
+  /* Wrappers between the container and the video just have to get out of the
+     way and fill their parent. */
+  var WRAP = Object.assign({}, CLEAN, {
+    position: 'absolute',
+    left: '0px',
+    top: '0px',
+    right: 'auto',
+    bottom: 'auto',
+    width: '100%',
+    height: '100%',
+    'min-width': '0',
+    'min-height': '0',
+    'max-width': 'none',
+    'max-height': 'none',
+    margin: '0',
+    padding: '0',
+    border: '0',
+    display: 'block',
+    visibility: 'visible',
+    overflow: 'visible',
+    'z-index': 'auto'
+  });
+
+  var VIDEO = Object.assign({}, WRAP, {
+    background: '#000',
+    'border-radius': '0',
+    'object-position': 'center center'
+  });
+
+  var ROOT = Object.assign({}, CLEAN, { overflow: 'hidden' });
 
   /* own = this frame maximized its own video; frame = this frame maximized a
      child <iframe> on behalf of a descendant. */
   var own = null;
   var frame = null;
 
-  function applyStyle(el, props) {
-    var saved = [];
-    Object.keys(props).forEach(function (prop) {
-      saved.push([prop, el.style.getPropertyValue(prop), el.style.getPropertyPriority(prop)]);
-      el.style.setProperty(prop, props[prop], 'important');
-    });
+  var MARK = 'data-dashvideo-promoted';
+
+  /* Save the whole style attribute: `all: initial` collapses every longhand in
+     the declaration, so per-property restores would lose the site's own inline
+     values. An empty attribute counts as none, so restoring never leaves a bare
+     style="" behind. */
+  function stash(el) {
+    var previous = el.getAttribute('style');
+    if (previous === '') previous = null;
+    el.setAttribute(MARK, '');
     return function restore() {
-      saved.forEach(function (entry) {
-        if (entry[1]) el.style.setProperty(entry[0], entry[1], entry[2]);
-        else el.style.removeProperty(entry[0]);
-      });
+      if (previous === null) {
+        el.removeAttribute('style');
+        /* Chrome serialises the emptied declaration straight back into an
+           empty style="" - clearing it again leaves the element untouched. */
+        if (el.getAttribute('style') === '') el.removeAttribute('style');
+      } else {
+        el.setAttribute('style', previous);
+      }
+      el.removeAttribute(MARK);
     };
   }
 
-  function ancestors(el) {
-    var out = [];
-    var node = el.parentNode;
-    while (node) {
-      if (node.nodeType === 1) out.push(node);
-      if (node.nodeType === 11 && node.host) node = node.host;      /* leave shadow root */
-      else node = node.parentNode;
-    }
-    return out;
+  /* Never touch the same element twice: a duplicate frame-maximize message
+     would otherwise stash styles we had already replaced. */
+  function promoted(el) {
+    return el.hasAttribute(MARK);
   }
 
-  function neutralize(el) {
-    var style;
-    try {
-      style = getComputedStyle(el);
-    } catch (e) {
-      return null;
-    }
-    var props = null;
-    var trapping = TRAPPING.some(function (p) {
-      var value = style.getPropertyValue(p);
-      return value && value !== 'none' && value !== 'auto' && value !== 'flat';
-    }) || Number(style.opacity) < 1;
-
-    if (trapping) props = Object.assign({}, NEUTRAL);
-
-    /* An ancestor stacking context would otherwise paint over the video. */
-    if (style.position !== 'static' && style.zIndex !== 'auto') {
-      props = props || {};
-      props['z-index'] = String(Z_VIDEO);
-    }
-    return props ? applyStyle(el, props) : null;
-  }
-
-  function makeBackdrop() {
-    var backdrop = document.createElement('div');
-    backdrop.setAttribute('data-dashvideo-backdrop', '');
-    backdrop.style.cssText = 'all: initial !important; position: fixed !important;' +
-      'left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important;' +
-      'background: #000 !important; z-index: ' + Z_BACKDROP + ' !important;';
-    (document.body || document.documentElement).appendChild(backdrop);
-    return backdrop;
-  }
-
-  function fill(el) {
-    var restores = [applyStyle(el, FILL)];
-    ancestors(el).forEach(function (node) {
-      var undo = neutralize(node);
-      if (undo) restores.push(undo);
+  function assign(el, props) {
+    Object.keys(props).forEach(function (prop) {
+      el.style.setProperty(prop, props[prop], 'important');
     });
-    var docEl = document.documentElement;
-    if (docEl) restores.push(applyStyle(docEl, { overflow: 'hidden' }));
-    if (document.body) restores.push(applyStyle(document.body, { overflow: 'hidden' }));
-    var backdrop = makeBackdrop();
+  }
+
+  function parentOf(node) {
+    var parent = node.parentNode;
+    if (parent && parent.nodeType === 11 && parent.host) return parent.host;   /* shadow root */
+    return parent && parent.nodeType === 1 ? parent : null;
+  }
+
+  /* Climb to the player: the outermost ancestor that is still essentially the
+     video's own box. Wrappers match it exactly; a player that letterboxes the
+     video is a little larger and brings its control bar with it. Anything that
+     starts to look like page layout - much bigger than the video, or bigger
+     than the viewport - ends the climb. */
+  function pickContainer(video) {
+    var rect = video.getBoundingClientRect();
+    if (rect.width < 4 || rect.height < 4) return video;
+
+    var area = rect.width * rect.height;
+    var maxWidth = (window.innerWidth || rect.width) * 1.05;
+    var maxHeight = (window.innerHeight || rect.height) * 1.05;
+
+    var best = video;
+    var node = parentOf(video);
+    var hops = 0;
+
+    while (node && hops++ < 12) {
+      if (node === document.body || node === document.documentElement) break;
+      var r = node.getBoundingClientRect();
+      var wraps = r.left <= rect.left + 2 && r.top <= rect.top + 2 &&
+        r.right >= rect.right - 2 && r.bottom >= rect.bottom - 2;
+      if (!wraps) break;
+      if (r.width * r.height > area * 1.7) break;
+      if (r.width > maxWidth || r.height > maxHeight) break;
+      best = node;
+      node = parentOf(node);
+    }
+    return best;
+  }
+
+  function fitMode() {
+    var fit = state.settings.maximizeFit;
+    return fit === 'cover' || fit === 'fill' ? fit : 'contain';
+  }
+
+  /* Promote `target` to fill the tab, clearing everything above it. */
+  function promote(target, video) {
+    var restores = [];
+    var take = function (el, props) {
+      if (promoted(el)) return;
+      restores.push(stash(el));
+      assign(el, props);
+    };
+
+    take(target, TARGET);
+
+    if (video && video !== target) {
+      /* Wrappers between the container and the video get out of the way, then
+         the video fills what is left. The loop stops at the container - never
+         above it, or it would drag <body> along. */
+      var node = parentOf(video);
+      while (node && node !== target &&
+             node !== document.body && node !== document.documentElement) {
+        take(node, WRAP);
+        node = parentOf(node);
+      }
+      take(video, Object.assign({ 'object-fit': fitMode() }, VIDEO));
+    } else if (video) {
+      video.style.setProperty('object-fit', fitMode(), 'important');
+    }
+
+    /* `all: initial` leaves no stacking context, no clipping and no transform
+       for the fixed target to be trapped in. */
+    var ancestor = parentOf(target);
+    while (ancestor) {
+      if (ancestor === document.body || ancestor === document.documentElement) {
+        take(ancestor, ROOT);
+      } else if (!promoted(ancestor)) {
+        restores.push(stash(ancestor));
+        ancestor.style.setProperty('all', 'initial', 'important');
+      }
+      ancestor = parentOf(ancestor);
+    }
+
     return {
-      element: el,
+      element: target,
+      video: video || null,
       undo: function () {
-        restores.forEach(function (fn) { fn(); });
-        if (backdrop.parentNode) backdrop.parentNode.removeChild(backdrop);
+        for (var i = restores.length - 1; i >= 0; i--) restores[i]();
       }
     };
   }
@@ -146,17 +232,23 @@
     } catch (e) { /* ignore */ }
   }
 
+  function settle() {
+    window.dispatchEvent(new Event('resize'));
+    /* Players that lay themselves out on the next frame need a second nudge. */
+    setTimeout(function () { window.dispatchEvent(new Event('resize')); }, 120);
+  }
+
   function enter(video) {
     if (own) return true;
     if (!video) return false;
-    own = fill(video);
+    own = promote(pickContainer(video), video);
     state.maximized = true;
     bubble(true);
     if (DV.ui) {
       DV.ui.ensure();
       DV.ui.refresh();
     }
-    window.dispatchEvent(new Event('resize'));
+    settle();
     return true;
   }
 
@@ -167,12 +259,20 @@
     state.maximized = false;
     bubble(false);
     if (DV.ui) DV.ui.refresh();
-    window.dispatchEvent(new Event('resize'));
+    settle();
     return true;
   }
 
   function toggle(video) {
     return own ? (exit(), false) : (enter(video), true);
+  }
+
+  /* Re-apply the fit without leaving maximized mode. */
+  function applyFit(video) {
+    var target = video || (own && own.video);
+    if (!target) return fitMode();
+    target.style.setProperty('object-fit', fitMode(), 'important');
+    return fitMode();
   }
 
   /* A descendant frame asked us to maximize the iframe that contains it. */
@@ -182,6 +282,7 @@
         frame.undo();
         frame = null;
         bubble(false);
+        settle();
       }
       return;
     }
@@ -196,8 +297,9 @@
         win = null;
       }
       if (win && win === source) {
-        frame = fill(candidate);
+        frame = promote(candidate, null);
         bubble(true);
+        settle();
         return;
       }
     }
@@ -222,6 +324,7 @@
     enter: enter,
     exit: exit,
     toggle: toggle,
+    applyFit: applyFit,
     isMaximized: isMaximized,
     fromChildFrame: fromChildFrame,
     filledFrameWindow: filledFrameWindow

@@ -28,6 +28,7 @@
     { id: 'speedUp', group: 'Speed', label: 'Faster', hint: 'By the speed step' },
     { id: 'speedReset', group: 'Speed', label: 'Reset speed', hint: 'Back to the default speed' },
     { id: 'maximize', group: 'View', label: 'Maximize in tab', hint: 'Fill the tab with the video' },
+    { id: 'maximizeFit', group: 'View', label: 'Cycle fit', hint: 'Fit, zoom to fill, or stretch' },
     { id: 'panelToggle', group: 'View', label: 'Show / hide controls', hint: 'The compact toolbar at the top of the video' },
     { id: 'playPause', group: 'View', label: 'Play / pause', hint: 'Unbound by default' },
     { id: 'mute', group: 'View', label: 'Mute / unmute', hint: 'Unbound by default' },
@@ -48,6 +49,7 @@
     speedUp: key('KeyD'),
     speedReset: key('KeyR'),
     maximize: key('KeyM'),
+    maximizeFit: key('KeyM', { shift: true }),
     panelToggle: key('KeyV'),
     playPause: null,
     mute: null,
@@ -67,6 +69,9 @@
     seekIntervalLong: 30,
     fps: 30,
     fpsAuto: true,
+
+    /* How the picture fills the tab: contain, cover (zoom to fill) or fill */
+    maximizeFit: 'contain',
 
     /* Speed */
     speedStep: 0.1,

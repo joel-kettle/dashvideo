@@ -8,13 +8,8 @@ dashvideo-ui {
   z-index: 2147483647;
 }
 
-[data-dashvideo-backdrop] {
-  pointer-events: auto;
-}
-
 @media print {
-  dashvideo-ui,
-  [data-dashvideo-backdrop] {
+  dashvideo-ui {
     display: none !important;
   }
 }

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Hostile player page</title>
+<!-- Every trap a real site sets for an element trying to go fullscreen:
+     a transformed ancestor, a static flex item with a z-index (a stacking
+     context), paint containment, isolation, and overlays above the player. -->
+<style>
+  body { margin:0; background:#141418; color:#ddd; font-family:sans-serif; height:2400px; }
+  header { position:fixed; left:0; right:0; top:0; height:48px; z-index:9999;
+           background:#22232a; display:flex; align-items:center; padding:0 16px; }
+  main { padding:70px 16px 16px; transform: translateZ(0); }
+  .row { display:flex; gap:16px; align-items:flex-start; }
+  .col { z-index:1; }
+  .clip { overflow:hidden; contain:paint; isolation:isolate; border-radius:8px; }
+  .player { position:relative; width:480px; height:270px; background:#000; }
+  .vidwrap { position:absolute; inset:0; transform:translateZ(0); overflow:hidden; }
+  .vidwrap video { width:100%; height:100%; }
+  .controls { position:absolute; left:0; right:0; bottom:0; height:34px; z-index:5;
+              background:rgba(0,0,0,.65); color:#fff; display:flex; align-items:center;
+              padding:0 12px; font-size:13px; }
+  aside { position:relative; z-index:5; width:220px; padding:12px; background:#1d1f26; border-radius:8px; }
+</style></head>
+<body>
+  <header>Site header (fixed, z-index 9999)</header>
+  <main>
+    <div class="row">
+      <div class="col">
+        <div class="clip">
+          <div class="player" id="player">
+            <div class="vidwrap"><video id="v" src="sample.webm" preload="auto"></video></div>
+            <div class="controls" id="controls">▶ 0:00 / 0:04 — the site's own control bar</div>
+          </div>
+        </div>
+      </div>
+      <aside>Sidebar, z-index 5</aside>
+    </div>
+  </main>
+</body></html>

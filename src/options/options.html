@@ -65,6 +65,21 @@
     </section>
 
     <section class="card">
+      <h2>Maximizing</h2>
+      <div class="field">
+        <label for="maximizeFit">Picture fit</label>
+        <p class="hint">How the video fills the tab once maximized. The cycle hotkey changes it while you watch.</p>
+        <span class="control">
+          <select id="maximizeFit" data-setting="maximizeFit">
+            <option value="contain">Fit — the whole picture</option>
+            <option value="cover">Zoom to fill — crop the edges</option>
+            <option value="fill">Stretch — ignore the aspect ratio</option>
+          </select>
+        </span>
+      </div>
+    </section>
+
+    <section class="card">
       <h2>Hotkeys</h2>
       <p class="hint block">Click a shortcut, then press the keys you want. Press Esc to cancel, Backspace to unbind.
         Hotkeys are ignored while you are typing in a text field.</p>

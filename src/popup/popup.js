@@ -5,6 +5,8 @@
   var DV = globalThis.DV;
   var $ = function (id) { return document.getElementById(id); };
 
+  var FIT_LABELS = { contain: 'whole picture', cover: 'zoom to fill', fill: 'stretch' };
+
   var tabId = null;
   var settings = DV.DEFAULTS;
   var current = null;
@@ -55,6 +57,7 @@
     $('fpsValue').textContent = Math.round(state.fps) + ' fps';
     $('maximize').textContent = state.maximized ? '⛶ Restore size' : '⛶ Maximize in tab';
     $('maximize').classList.toggle('on', state.maximized);
+    $('fit').textContent = 'Fit: ' + (FIT_LABELS[state.fit] || FIT_LABELS.contain);
 
     var subs = state.subs;
     $('subsInfo').hidden = !subs.loaded;
