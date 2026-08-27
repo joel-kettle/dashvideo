@@ -18,6 +18,7 @@ The pages in `pages/` are deliberately hostile:
 | `plain.html` | A video under a transformed, filtered ancestor. |
 | `hostile.html` | Every trap at once: a transformed ancestor, a static flex item with a z-index (a stacking context), `contain: paint`, `isolation: isolate`, a fixed site header and overlays above the player. Maximizing used to black-screen here. |
 | `letterbox.html` | A 4:3 video inside a 16:9 player that owns the control bar, the way YouTube letterboxes. |
+| `keyup-player.html` | A player that toggles playback on `keyup`, the way YouTube does, for the hotkey that has to claim the whole keystroke. |
 | `embed.html` | A cross-origin `<iframe>` on a second port, for the frame relaying and frame maximizing. |
 | `fullscreen.html` | A player that drives the fullscreen API itself, for the takeover: its button, its `fullscreenchange` handler and its exit button. |
 

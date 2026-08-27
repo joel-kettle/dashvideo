@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Keyup player</title>
+<style>
+  body { margin:0; padding:20px; background:#111; color:#eee; font-family:sans-serif; }
+  #player { width:480px; }
+  video { width:480px; height:360px; background:#000; }
+</style></head>
+<body>
+  <h1>Keyup player</h1>
+  <div id="player" tabindex="-1"><video id="v" src="sample.webm" preload="auto"></video></div>
+<script>
+  /* YouTube toggles playback on keyup rather than keydown, and reads the
+     video's state at that moment. A hotkey that only swallows the keydown
+     leaves this free to toggle straight back. */
+  window.toggles = 0;
+  document.getElementById('player').addEventListener('keyup', function (e) {
+    if (e.code !== 'Space') return;
+    var v = document.getElementById('v');
+    window.toggles++;
+    if (v.paused) v.play(); else v.pause();
+  });
+</script>
+</body></html>

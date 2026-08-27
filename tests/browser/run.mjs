@@ -218,6 +218,38 @@ const overlay = (page) => page.evaluate(() => {
   await page.close();
 }
 
+/* --- a site that toggles playback on keyup, the way YouTube does --------- */
+{
+  const [worker] = ctx.serviceWorkers();
+  await worker.evaluate(() => chrome.storage.sync.set({
+    settings: { keys: { playPause: { code: 'Space', shift: false, ctrl: false, alt: false, meta: false } } }
+  }));
+  const page = await open('keyup-player.html');
+  await page.click('#player');
+  await page.waitForTimeout(300);
+
+  /* Press it the way a person does: a real keystroke is held long enough for
+     the site to see the state DashVideo already changed on the way down. */
+  const tap = async () => {
+    await page.keyboard.down('Space');
+    await page.waitForTimeout(120);
+    await page.keyboard.up('Space');
+    await page.waitForTimeout(400);
+  };
+  const siteToggles = () => page.evaluate(() => window.toggles);
+
+  await tap();
+  check('Space plays, and stays playing', (await state(page)).paused === false);
+  check('the site never sees the keystroke', (await siteToggles()) === 0,
+    `site handled it ${await siteToggles()}×`);
+
+  await tap();
+  check('Space pauses again', (await state(page)).paused === true);
+
+  await worker.evaluate(() => chrome.storage.sync.remove('settings'));
+  await page.close();
+}
+
 /* --- maximizing inside a hostile DOM ------------------------------------ */
 {
   const page = await open('hostile.html', { width: 1000, height: 640 });

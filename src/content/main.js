@@ -23,6 +23,25 @@
     }
   }
 
+  /* Codes whose keydown we took, still waiting for their keyup. Players such as
+     YouTube toggle playback on keyup rather than keydown, so swallowing only
+     the way down leaves them free to act on the tail of the same keystroke and
+     undo what we just did. A keystroke we claim is ours end to end. */
+  var claimed = Object.create(null);
+
+  function consume(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    claimed[e.code] = true;
+  }
+
+  function onKeyUp(e) {
+    if (!claimed[e.code]) return;
+    delete claimed[e.code];
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   function onKeyDown(e) {
     if (!ready || !active) return;
     if (e.defaultPrevented || e.isComposing || e.keyCode === 229) return;
@@ -31,8 +50,7 @@
     if (e.code === 'Escape') {
       if (state.maximized) {
         DV.maximize.exit();
-        e.preventDefault();
-        e.stopPropagation();
+        consume(e);
         return;
       }
       /* The video is in a child frame that we blew up on its behalf. */
@@ -41,8 +59,7 @@
         try {
           framed.postMessage({ __dashvideo: 'action', id: 'maximize' }, '*');
         } catch (err) { /* ignore */ }
-        e.preventDefault();
-        e.stopPropagation();
+        consume(e);
         return;
       }
     }
@@ -59,8 +76,7 @@
         relayToChildFrames(id);
         return;
       }
-      e.preventDefault();
-      e.stopPropagation();
+      consume(e);
       DV.actions.run(id);
       return;
     }
@@ -191,6 +207,10 @@
     };
 
     window.addEventListener('keydown', onKeyDown, true);
+    window.addEventListener('keyup', onKeyUp, true);
+    /* A keyup that lands in another window is never coming - forget it, so the
+       next press of that key reaches the page normally. */
+    window.addEventListener('blur', function () { claimed = Object.create(null); }, false);
     window.addEventListener('message', onWindowMessage, false);
 
     try {
