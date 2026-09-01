@@ -14,6 +14,7 @@ subtitle file on top of any stream.
 | **Custom seek** | Jump by your own interval (3 seconds by default) plus a second, longer jump. |
 | **Frame by frame** | Steps exactly one frame at a time. The real frame rate is measured while the video plays, so 24, 25, 29.97 and 60 fps sources all step correctly. |
 | **In-tab maximize** | Fills the browser tab with the video - no native fullscreen, so the rest of the browser stays put. It takes over the player's own fullscreen button, promotes the player rather than the bare video so the site's controls come with it, and survives hostile page layouts and cross-origin iframes. Fit, zoom to fill or stretch. |
+| **Rotate** | Turns the picture in 90° steps and scales it to fit the box the player gave it, so a clip recorded sideways is watchable without leaving the page. |
 | **Playback speed** | Raise and lower the speed by your own step, reset to a default, and keep the speed when a player tries to reset it. |
 | **Hotkeys** | Every action is rebindable, including modifier combinations. They stay out of the way while you type. |
 | **Your own subtitles** | Attach a local `.srt`, `.vtt`, `.ass`/`.ssa` or `.sbv` file to any video - including streams that ship no subtitles - and nudge the timing while you watch. |
@@ -37,6 +38,7 @@ DashVideo is a plain Manifest V3 extension with no build step:
 | <kbd>R</kbd> | Reset the speed |
 | <kbd>M</kbd> | Maximize in the tab (<kbd>Esc</kbd> restores) |
 | <kbd>Shift</kbd>+<kbd>M</kbd> | Cycle the picture fit: fit → zoom to fill → stretch |
+| <kbd>T</kbd> | Rotate the picture 90° clockwise (four presses are back to normal) |
 | <kbd>V</kbd> | Show / hide the on-video control toolbar |
 | <kbd>Shift</kbd>+<kbd>C</kbd> | Load a subtitle file |
 | <kbd>C</kbd> | Show / hide the subtitles |

@@ -51,6 +51,7 @@
         "src/content/util.js",
         "src/content/ui.js",
         "src/content/videos.js",
+        "src/content/rotate.js",
         "src/content/maximize.js",
         "src/content/subtitles/parser.js",
         "src/content/subtitles/renderer.js",

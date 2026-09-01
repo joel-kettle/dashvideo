@@ -216,6 +216,12 @@
       ancestor = parentOf(ancestor);
     }
 
+    /* The video's inline transform was just replaced - put any rotation back,
+       rescaled for the box it has now. Last, because clearing the ancestors is
+       what settles that box: a transformed one would still be holding the
+       fixed target inside itself. */
+    if (video && DV.rotate) DV.rotate.apply(video);
+
     return {
       element: target,
       video: video || null,
@@ -277,9 +283,13 @@
 
   function exit() {
     if (!own) return false;
+    var video = own.video;
     own.element.removeAttribute(TARGET_ATTR);
     own.undo();
     own = null;
+    /* The restored style attribute carries the rotation the video had before
+       it was maximized, scaled for the box it had then. */
+    if (video && DV.rotate) DV.rotate.apply(video);
     state.maximized = false;
     bubble(false);
     tellPage(false, 0);
@@ -297,6 +307,8 @@
     var target = video || (own && own.video);
     if (!target) return fitMode();
     target.style.setProperty('object-fit', fitMode(), 'important');
+    /* A different fit means a different picture inside the same box. */
+    if (DV.rotate) DV.rotate.apply(target);
     return fitMode();
   }
 

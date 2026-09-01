@@ -314,7 +314,9 @@
     var video = state.video;
     var rect;
     if (video && video.isConnected) {
-      rect = video.getBoundingClientRect();
+      /* The box the page laid out, not the turned one: the toolbar and the
+         subtitles stay put while the picture rotates under them. */
+      rect = DV.rotate ? DV.rotate.box(video) : video.getBoundingClientRect();
     } else {
       rect = { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight };
     }

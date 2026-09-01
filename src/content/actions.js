@@ -133,6 +133,11 @@
       DV.ui.toast(FIT_LABELS[next], FIT_HINTS[next]);
       return true;
     },
+    rotate: function (v) {
+      var angle = DV.rotate.step(v, 90);
+      DV.ui.toast('⟳ ' + angle + '°', angle ? 'Picture rotation' : 'Back to normal');
+      return true;
+    },
     panelToggle: function () {
       DV.ui.togglePanel();
       return true;

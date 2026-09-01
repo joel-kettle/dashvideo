@@ -341,6 +341,71 @@ const overlay = (page) => page.evaluate(() => {
   await page.close();
 }
 
+/* --- rotating the picture ----------------------------------------------- */
+{
+  const page = await open('plain.html', { width: 900, height: 600 });
+  const shape = () => page.evaluate(() => {
+    const v = document.getElementById('v');
+    const r = v.getBoundingClientRect();
+    const t = getComputedStyle(v).transform;
+    const m = t === 'none' ? new DOMMatrix() : new DOMMatrix(t);
+    const anchor = document.querySelector('dashvideo-ui')?.shadowRoot.querySelector('.anchor');
+    const round = (n) => Math.round(n * 1000) / 1000;
+    return {
+      w: Math.round(r.width), h: Math.round(r.height),
+      cx: Math.round(r.left + r.width / 2), cy: Math.round(r.top + r.height / 2),
+      /* For a rotation with a uniform scale: a = cos(angle)·s, b = sin(angle)·s. */
+      a: round(m.a), b: round(m.b),
+      anchor: anchor ? [Math.round(parseFloat(anchor.style.width)),
+        Math.round(parseFloat(anchor.style.height))] : null
+    };
+  });
+
+  const before = await shape();
+  await page.keyboard.press('t');
+  await page.waitForTimeout(300);
+  const turned = await shape();
+  check('T turns the picture a quarter turn clockwise',
+    Math.abs(turned.a) < 0.001 && near(turned.b, 0.75, 0.001), JSON.stringify(turned));
+  /* 480×360 turned and scaled by 3/4 fits back inside its own box. */
+  check('the turned picture is scaled to fit the box it was given',
+    turned.w === 270 && turned.h === 360 &&
+    turned.cx === before.cx && turned.cy === before.cy, JSON.stringify(turned));
+  check('the overlay stays on the box the page laid out',
+    turned.anchor?.[0] === 480 && turned.anchor?.[1] === 360, JSON.stringify(turned.anchor));
+  const hud = await overlay(page);
+  check('the overlay reports the angle', hud?.toastOn && hud.toast.includes('90°'), hud?.toast);
+
+  await page.keyboard.press('m');
+  await page.waitForTimeout(700);
+  const maxed = await shape();
+  check('maximizing keeps the rotation, rescaled for the tab',
+    Math.abs(maxed.a) < 0.001 && near(maxed.b, 0.75, 0.001) && maxed.h > maxed.w,
+    JSON.stringify(maxed));
+  const pixels = samplePixels(await page.screenshot(), [[0.5, 0.5], [0.06, 0.5]]);
+  check('the turned picture is on screen, with black down the sides',
+    pixels[0][0] + pixels[0][1] + pixels[0][2] > 60 &&
+    pixels[1][0] + pixels[1][1] + pixels[1][2] < 60, JSON.stringify(pixels));
+
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(500);
+  const restored = await shape();
+  check('and the rotation survives the trip back',
+    restored.w === 270 && restored.h === 360 && near(restored.b, 0.75, 0.001),
+    JSON.stringify(restored));
+
+  await page.keyboard.press('t');
+  await page.keyboard.press('t');
+  await page.keyboard.press('t');
+  await page.waitForTimeout(400);
+  const home = await shape();
+  check('four turns are back to normal, with no transform left behind',
+    home.w === 480 && home.h === 360 && home.a === 1 && home.b === 0 &&
+    (await page.evaluate(() => document.getElementById('v').style.transform)) === '',
+    JSON.stringify(home));
+  await page.close();
+}
+
 /* --- a cross-origin embed ----------------------------------------------- */
 {
   const page = await ctx.newPage();
