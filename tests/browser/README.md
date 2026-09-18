@@ -20,6 +20,7 @@ The pages in `pages/` are deliberately hostile:
 | `letterbox.html` | A 4:3 video inside a 16:9 player that owns the control bar, the way YouTube letterboxes. |
 | `keyup-player.html` | A player that toggles playback on `keyup`, the way YouTube does, for the hotkey that has to claim the whole keystroke. |
 | `embed.html` | A cross-origin `<iframe>` on a second port, for the frame relaying and frame maximizing. |
+| `feed.html` | Three videos down one page, like a feed, for the next / previous video actions in and out of maximized mode. |
 | `fullscreen.html` | A player that drives the fullscreen API itself, for the takeover: its button, its `fullscreenchange` handler and its exit button. |
 
 `pages/sample.webm` is a four second 30 fps test pattern; the frame-stepping

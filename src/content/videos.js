@@ -88,6 +88,17 @@
     return !!active();
   }
 
+  /* Every video on the page with something to play, in document order - the
+     list the next / previous video actions walk. Visibility is deliberately
+     not a criterion: a clip further down a feed is still the next one, and
+     maximizing it is what makes it visible. */
+  function playable() {
+    return all().filter(function (video) {
+      return video.readyState > 0 || !!video.currentSrc ||
+        video.hasAttribute('src') || !!video.querySelector('source');
+    });
+  }
+
   /* ---- frame rate ------------------------------------------------------ */
 
   function snap(fps) {
@@ -244,6 +255,7 @@
     active: active,
     setActive: setActive,
     has: has,
+    playable: playable,
     fps: fps,
     setRate: setRate,
     detectFps: detectFps,

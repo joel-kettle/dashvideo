@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Feed of videos</title>
+<!-- Several videos down one page, the way a feed or a gallery lays them out,
+     for the next / previous video actions - in and out of maximized mode. -->
+<style>
+  body { margin:0; background:#141418; color:#ddd; font-family:sans-serif; }
+  main { padding:16px; }
+  .post { margin:0 0 600px; width:480px; }
+  .post video { display:block; width:480px; height:270px; background:#000; }
+  .post p { margin:6px 0; font-size:13px; }
+</style></head>
+<body>
+  <main>
+    <article class="post"><video id="v" src="sample.webm" preload="auto"></video><p>First clip</p></article>
+    <article class="post"><video id="v2" src="sample.webm" preload="auto"></video><p>Second clip</p></article>
+    <article class="post"><video id="v3" src="sample.webm" preload="auto"></video><p>Third clip</p></article>
+  </main>
+</body></html>

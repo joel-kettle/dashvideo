@@ -39,6 +39,7 @@ DashVideo is a plain Manifest V3 extension with no build step:
 | <kbd>M</kbd> | Maximize in the tab (<kbd>Esc</kbd> restores) |
 | <kbd>Shift</kbd>+<kbd>M</kbd> | Cycle the picture fit: fit → zoom to fill → stretch |
 | <kbd>T</kbd> | Rotate the picture 90° clockwise (four presses are back to normal) |
+| <kbd>N</kbd> / <kbd>Shift</kbd>+<kbd>N</kbd> | Next / previous video on the page (stays maximized if you are) |
 | <kbd>V</kbd> | Show / hide the on-video control toolbar |
 | <kbd>Shift</kbd>+<kbd>C</kbd> | Load a subtitle file |
 | <kbd>C</kbd> | Show / hide the subtitles |
@@ -82,6 +83,14 @@ fills the tab.
 * **Stretch** - fills the tab and ignores the aspect ratio.
 
 The choice is remembered; the options page sets the one to start from.
+
+On a page with several videos - a feed, a gallery - <kbd>N</kbd> moves on to
+the next one and <kbd>Shift</kbd>+<kbd>N</kbd> back to the previous, wrapping
+round at the ends. Maximized, the tab is handed straight to the next video: the
+one you leave is paused, the next picks up playing if it was, and the page is
+scrolled to it, so <kbd>Esc</kbd> lands you on what you were watching. The
+toolbar shows ⏮ / ⏭ buttons for the same thing whenever the page has more than
+one video.
 
 ## Subtitles
 

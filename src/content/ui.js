@@ -142,6 +142,13 @@
     frame.appendChild(els.frameFwd);
     panel.appendChild(frame);
 
+    /* Only on pages with more than one video. */
+    els.navGroup = group();
+    els.navGroup.hidden = true;
+    els.navGroup.appendChild(button('videoPrev', '⏮', 'Previous video on the page'));
+    els.navGroup.appendChild(button('videoNext', '⏭', 'Next video on the page'));
+    panel.appendChild(els.navGroup);
+
     var view = group();
     els.maxBtn = button('maximize', '⛶', 'Maximize in tab');
     els.fitBtn = button('maximizeFit', 'Fit', 'Cycle the picture fit');
@@ -397,6 +404,8 @@
     var fps = Math.round((DV.videos && v) ? DV.videos.fps(v) : s.fps);
     els.frameBack.title = 'Previous frame (' + fps + ' fps)';
     els.frameFwd.title = 'Next frame (' + fps + ' fps)';
+
+    els.navGroup.hidden = !(DV.videos && DV.videos.playable().length > 1);
 
     els.maxBtn.title = state.maximized ? 'Restore the size' : 'Maximize in tab';
     els.maxBtn.classList.toggle('on', state.maximized);

@@ -406,6 +406,81 @@ const overlay = (page) => page.evaluate(() => {
   await page.close();
 }
 
+/* --- next / previous video on a page with several ----------------------- */
+{
+  const page = await open('feed.html', { width: 1000, height: 640 });
+  await page.waitForFunction(() => ['v2', 'v3'].every((id) => document.getElementById(id).readyState >= 2));
+  await page.evaluate(() => document.getElementById('v').play());
+  await page.waitForTimeout(400);
+
+  const which = () => page.evaluate(() => {
+    const on = document.elementFromPoint(innerWidth / 2, innerHeight / 2);
+    const vids = ['v', 'v2', 'v3'].map((id) => document.getElementById(id));
+    const r = on?.getBoundingClientRect();
+    return {
+      onTop: on?.id,
+      fills: r && Math.round(r.width) === innerWidth && Math.round(r.height) === innerHeight,
+      playing: vids.filter((v) => !v.paused).map((v) => v.id),
+      leftovers: document.querySelectorAll('[data-dashvideo-promoted]').length,
+      scrollY: Math.round(scrollY)
+    };
+  });
+
+  await page.keyboard.press('m');
+  await page.waitForTimeout(600);
+  let now = await which();
+  check('the first video is maximized to start', now.onTop === 'v' && now.fills, JSON.stringify(now));
+
+  await page.keyboard.press('n');
+  await page.waitForTimeout(700);
+  now = await which();
+  check('N hands the tab to the next video', now.onTop === 'v2' && now.fills, JSON.stringify(now));
+  check('the video left behind is paused and the new one plays',
+    now.playing.length === 1 && now.playing[0] === 'v2', JSON.stringify(now.playing));
+  const hud = await overlay(page);
+  check('the overlay counts the videos', hud?.toastOn && hud.toast.includes('2 / 3'), hud?.toast);
+
+  await page.keyboard.press('n');
+  await page.keyboard.press('n');
+  await page.waitForTimeout(700);
+  now = await which();
+  check('past the last one it wraps to the first', now.onTop === 'v' && now.fills, JSON.stringify(now));
+
+  await page.keyboard.press('Shift+N');
+  await page.waitForTimeout(700);
+  now = await which();
+  check('Shift+N goes back the other way', now.onTop === 'v3' && now.fills, JSON.stringify(now));
+
+  await page.keyboard.press('Escape');
+  await page.waitForTimeout(600);
+  const back = await page.evaluate(() => {
+    const r = document.getElementById('v3').getBoundingClientRect();
+    return {
+      w: Math.round(r.width),
+      inView: r.top >= 0 && r.bottom <= innerHeight,
+      leftovers: document.querySelectorAll('[style=""], [data-dashvideo-promoted]').length,
+      overflow: getComputedStyle(document.documentElement).overflow
+    };
+  });
+  check('Escape restores the page, scrolled to the video that was on', back.w === 480 &&
+    back.inView && back.leftovers === 0 && back.overflow !== 'hidden', JSON.stringify(back));
+
+  /* Not maximized, the same key just moves on: pause, switch, scroll. The
+     first clip is rewound so a seek afterwards does not run it off the end. */
+  await page.evaluate(() => { document.getElementById('v').currentTime = 0; });
+  await page.keyboard.press('n');
+  await page.waitForTimeout(500);
+  await page.keyboard.press('x');
+  await page.waitForTimeout(300);
+  const moved = await page.evaluate(() => {
+    const v = document.getElementById('v');
+    return { t: v.currentTime, playing: !v.paused, inView: v.getBoundingClientRect().top >= 0 };
+  });
+  check('unmaximized, N moves the hotkeys on to the next video',
+    moved.playing && moved.inView && moved.t >= 3, JSON.stringify(moved));
+  await page.close();
+}
+
 /* --- a cross-origin embed ----------------------------------------------- */
 {
   const page = await ctx.newPage();

@@ -60,6 +60,39 @@
     return rate;
   }
 
+  /* Move to the next (or previous) video on the page, wrapping at the ends.
+     The one being left is paused so it does not keep talking underneath; the
+     new one picks up playing if the old one was. Maximized, the tab is handed
+     over: restore around the old video, promote the new one - the same trip
+     the hotkey makes, so every style comes back exactly. The page is scrolled
+     to the new video, so leaving maximized mode lands on what was watched. */
+  function switchVideo(v, direction) {
+    var videos = DV.videos.playable();
+    if (videos.length < 2) {
+      DV.ui.toast('No other video on this page');
+      return false;
+    }
+    var index = videos.indexOf(v);
+    var next = videos[(index + direction + videos.length) % videos.length];
+    var wasPlaying = !v.paused && !v.ended;
+    var wasMaximized = !!state.maximized;
+
+    if (wasMaximized) DV.maximize.exit();
+    if (wasPlaying) v.pause();
+    DV.videos.setActive(next);
+    try {
+      next.scrollIntoView({ block: 'center', inline: 'center' });
+    } catch (e) { /* ignore */ }
+    if (wasMaximized) DV.maximize.enter(next);
+    if (wasPlaying && next.paused) {
+      var play = next.play();
+      if (play && play.catch) play.catch(function () {});
+    }
+    DV.ui.toast((direction > 0 ? '⏭ ' : '⏮ ') + 'Video ' + (videos.indexOf(next) + 1) +
+      ' / ' + videos.length, wasMaximized ? 'Press Esc to restore' : '');
+    return true;
+  }
+
   function snapshot() {
     var v = state.video && state.video.isConnected ? state.video : DV.videos.best();
     var subs = state.subs;
@@ -138,6 +171,8 @@
       DV.ui.toast('⟳ ' + angle + '°', angle ? 'Picture rotation' : 'Back to normal');
       return true;
     },
+    videoNext: function (v) { return switchVideo(v, 1); },
+    videoPrev: function (v) { return switchVideo(v, -1); },
     panelToggle: function () {
       DV.ui.togglePanel();
       return true;
