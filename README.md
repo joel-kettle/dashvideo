@@ -153,7 +153,6 @@ stay out of the way.
 ```bash
 node --test tests/*.test.js     # subtitle parsing and hotkey matching
 node tests/browser/run.mjs      # end to end in a real Chromium (needs Playwright)
-python3 tools/make-icons.py     # regenerate the icons
 ```
 
 The browser suite loads the extension into Chromium and drives it against
@@ -171,7 +170,7 @@ src/page/        the fullscreen hook, injected into the page's own world
 src/popup/       toolbar popup
 src/options/     settings and hotkey editor
 src/background/  browser-level command handling
-tools/           icon generator
+icons/           icon.svg is the source; the PNGs are exported from it
 tests/           node --test suite, plus the Chromium checks in tests/browser/
 ```
 
