@@ -32,6 +32,10 @@
   function consume(e) {
     e.preventDefault();
     e.stopPropagation();
+    /* Sites often attach their own keydown listener to window too. stopPropagation
+       spares child nodes but not siblings on the same target - without this, both
+       seeks run and the jump is the sum of ours and theirs. */
+    e.stopImmediatePropagation();
     claimed[e.code] = true;
   }
 
@@ -40,6 +44,7 @@
     delete claimed[e.code];
     e.preventDefault();
     e.stopPropagation();
+    e.stopImmediatePropagation();
   }
 
   function onKeyDown(e) {
